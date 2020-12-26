@@ -1,15 +1,10 @@
+const mongoose = require('mongoose');
 let express = require('express');
 let cardRouter = express.Router();
 
-const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017';
-const dbName = 'mtgalleryDB';
-let db;
-
-MongoClient.connect(url, function (err, client) {
-  console.log('Connected successfully to server');
-  db = client.db(dbName);
-});
+const db = mongoose.connection;
+db.on('error', /* throw error */ console.error.bind(console, 'connection error:'));
+db.once('open', () => { });
 
 cardRouter.route('/')
   .get((req, res) => {
@@ -63,7 +58,7 @@ cardRouter.route('/')
   })
   .delete((req, res) => {
     res.send('not supported');
-  })
+  });
 
 cardRouter.route('/:id')
   .get((req, res) => {
@@ -89,6 +84,30 @@ cardRouter.route('/:id')
           $addFields: {
             'id': '$identifiers.multiverseId'
           }
+        },
+        {
+          $lookup: {
+            from: "sets",
+            as: "printings",
+            let: { printings: "$printings" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ["$code", "$$printings"]
+                  }
+                }
+              },
+              {
+                $project: {
+                  _id: 0,
+                  name: 1,
+                  releaseDate: 1,
+                  code: 1
+                },
+              }
+            ]
+          }
         }
       ]
     ).toArray(function (err, docs) {
@@ -107,6 +126,6 @@ cardRouter.route('/:id')
   })
   .delete((req, res) => {
     res.send('not supported');
-  })
+  });
 
-  module.exports = cardRouter;
+module.exports = cardRouter;

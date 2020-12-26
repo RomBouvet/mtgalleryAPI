@@ -1,15 +1,10 @@
+const mongoose = require('mongoose');
 let express = require('express');
 let setRouter = express.Router();
 
-const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017';
-const dbName = 'mtgalleryDB';
-let db;
-
-MongoClient.connect(url, function (err, client) {
-  console.log('Connected successfully to server');
-  db = client.db(dbName);
-});
+const db = mongoose.connection;
+db.on('error', /* throw error */ console.error.bind(console, 'connection error:'));
+db.once('open', () => {});
 
 setRouter.route('/')
   .get((req, res) => {
@@ -30,7 +25,17 @@ setRouter.route('/')
       }
       res.status(200).json(docs);
     });
+  })
+  .post((req, res) => {
+    res.send('not supported');
+  })
+  .put((req, res) => {
+    res.send('not supported');
+  })
+  .delete((req, res) => {
+    res.send('not supported');
   });
+
 
 setRouter.route('/:code')
   .get((req, res) => {
@@ -52,6 +57,15 @@ setRouter.route('/:code')
       }
       res.status(200).json(docs);
     });
+  })
+  .post((req, res) => {
+    res.send('not supported');
+  })
+  .put((req, res) => {
+    res.send('not supported');
+  })
+  .delete((req, res) => {
+    res.send('not supported');
   });
 
-  module.exports = setRouter;
+module.exports = setRouter;
